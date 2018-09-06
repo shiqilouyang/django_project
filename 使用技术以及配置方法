@@ -1,0 +1,203 @@
+1,异常处理处置！
+    1),新建 utils/exceptions.py 在utils工具类设置异常捕获，不使用django默认的异常处理！代码在文件之中
+    2),配置文件dev.py之中添加
+            REST_FRAMEWORK = {
+                # 异常处理 指定异常处理的自定义类
+                'EXCEPTION_HANDLER': 'meiduo_mall.utils.exceptions.exception_handler',
+            }
+
+2,使用redis
+    1),在配置文件之中配置redis 参考文档:http://django-redis-chs.readthedocs.io/zh_CN/latest/
+
+3,语言的配置(站点管理配置) 直接在配置文件中配置！
+
+4,图片验证码配置！
+    1),在 redis文件之中配置验证码存储位置
+        "verify_codes": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://10.211.55.5:6379/2",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    2,)使用代码连接上述配置的数据库，并且存储！(具体代码在 verfications/views.py 之中！)
+
+ 5,跨域请求！CORS
+    1),在配置文件之中注册应用
+    2),配置之中设置中间件
+    3),配置之中设置跨域白名单
+
+
+ 6,使用Celery完成发送短信
+
+    1),config.py配置文件之中加入，短信验证配置信息
+        broker_url = "redis://127.0.0.1/14"
+    2),详细观看项目说明文件！
+
+
+ 7,jwt 状态保持！ 参考文档:http://getblimp.github.io/django-rest-framework-jwt/
+    1),使用配置！在配置文件之中配置jwt
+    2),进行应用注册
+    3),只需要在注册使用:
+        from rest_framework_jwt.settings import api_settings
+
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+
+    4),登录支持
+        Django REST framework JWT 提供了登录签发JWT的视图，可以直接使用
+        from rest_framework_jwt.views import obtain_jwt_token
+        urlpatterns = [
+            url(r'^authorizations/$', obtain_jwt_token),
+        ]
+        但是只能返回 token值 在users/utils.py 文件之中创建
+        def jwt_response_payload_handler(token, user=None, request=None):
+            """
+            自定义jwt认证成功返回数据
+            """
+            return {
+                'token': token,
+                'user_id': user.id,
+                'username': user.username
+            }
+        然后更改setting文件
+            # JWT 指向自定义的 token返回文件！
+            JWT_AUTH = {
+                'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
+                'JWT_RESPONSE_PAYLOAD_HANDLER': 'users.utils.jwt_response_payload_handler',
+            }
+
+        支持手机号注册 在users/utils.py 文件之中创建
+            ...
+         然后设置文件增加
+            AUTHENTICATION_BACKENDS = [
+                'users.utils.UsernameMobileAuthBackend',
+            ]
+
+ 8,FastDFS分布式文件系统
+        FastDFS 为互联网量身定制， 充分考虑了冗余备份、负载均衡、线性扩容等机制，并注重高可用、高性能等指标，
+     使用 FastDFS 很容易搭建一套高性能的文件服务器集群提供文件上传、下载等服务.
+        FastDFS 架构包括 Tracker server 和 Storage server。客户端请求 Tracker server 进行文 件上传、下载，
+     通过 Tracker server 调度最终由 Storage server 完成文件上传和下载。
+        Tracker server 作用是负载均衡和调度，Storage server 作用是文件存储。
+
+ 9, python 与 FastDFS 交互使用
+    1),安装客户端 fdfs_client-py-master.zip
+            pip install fdfs_client-py-master.zip
+            pip install mutagen
+            pip isntall requests
+    2),我们在meiduo_mall/utils目录(第三方扩展)下新建fastdfs目录，将提供给大家的 client.conf 配置文件放到这个目录中。
+        修改client.conf文件以及支持！
+            base_path=FastDFS客户端存放日志文件的目录
+            tracker_server=运行tracker服务的机器ip:22122
+    3),通过创建的客户端对象执行上传文件的方法(也就是shell 之中或者ipython之中)
+        from fdfs_client.client import Fdfs_client
+        #建立连接对象
+        client = Fdfs_client('meiduo_mall/utils/fastdfs/client.conf')
+        #上传文件！
+        fa = client.upload_by_filename(文件名)
+        或
+        client.upload_by_buffer(文件bytes数据)
+    4),上传成功之后(打印fa)！  Remote file_id 即为FastDFS保存的文件的路径
+        {
+            'Group name': 'group1',
+            'Remote file_id': 'group1/M00/00/02/CtM3BVr-k6SACjAIAAJctR1ennA809.png',
+            'Status': 'Upload successed.',
+            'Local file name': '/Users/delron/Desktop/1.png',
+            'Uploaded size': '151.00KB',
+            'Storage IP': '10.211.55.5'
+        }
+    5),由于django自带了文件存储系统，而且我们更改了使用FastDFS来进行存储，因此需要更改存储
+        首先，meiduo_mall/utils/fastdfs目录中创建fdfs_storage.py(详细在此文件代码之中！)
+        其次,在settings/dev.py文件中添加设置
+            # django文件存储
+            DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fdfs_storage.FastDFSStorage'
+            # FastDFS
+            FDFS_URL = 'http://image.meiduo.site:8888/'
+            FDFS_CLIENT_CONF = os.path.join(BASE_DIR, 'utils/fastdfs/client.conf')
+        然后,在/etc/hosts中添加访问FastDFS storage服务器的域名
+            127.0.0.1   image.meiduo.site
+
+ 10,CKEditor富文本编辑器
+        在运营后台，运营人员需要录入商品并编辑商品的详情信息，而商品的详情信息不是普通的文本，可以是包含了HTML语法格式的字符串。
+    为了快速简单的让用户能够在页面中编辑带格式的文本，我们引入富文本编辑器。富文本即具备丰富样式格式的文本
+        1),注册应用
+        2),# 富文本编辑器ckeditor配置
+            CKEDITOR_CONFIGS = {
+                'default': {
+                    'toolbar': 'full',  # 工具条功能
+                    'height': 300,  # 编辑器高度
+                    # 'width': 300,  # 编辑器宽
+                },
+            }
+            CKEDITOR_UPLOAD_PATH = ''  # 上传图片保存路径，使用了FastDFS，所以此处设为''
+        3),路由配置
+            url(r'^ckeditor/', include('ckeditor_uploader.urls')),
+        4),在模型类添加字段(goods)
+
+        5),修改文件(我们将通过Django上传的图片保存到了FastDFS中，而保存在FastDFS中的文件名没有后缀名，
+                    ckeditor在处理上传后的文件名按照有后缀名来处理，所以会出现bug错误，)
+            ~/.virtualenvs/meiduo/lib/python3.5/site-packages/ckeditor_uploader/views.py
+
+
+ 11，首页页面静态化的处理!
+        商城的首页频繁被访问，为了提升访问速度，除了我们之前已经学过的使用缓存技术外，还可以使用页面静态化技术。
+    也就是按照一定的时间进行渲染首页。
+        1),在广告内容应用contents中，新建crons.py文件,内有代码描述(主要是定义了个函数执行渲染的操作！)
+        2),配置文件之中指定静态文件目录,并且TEMPLATES之中配置静态文件的路径
+        3),为了方便开发，随时生成静态化首页，我们可以在scripts中新建静态化首页的脚本(项目之中含有代码)
+            增加权限(或者777)
+                chmod +x regenerate_index_html.py
+            执行脚本
+                ./regenerate_index_html.py
+
+ 12,定时任务的使用，是为了与页面静态化配合使用的！
+    基本格式 :
+        * * * * *
+
+        分 时 日 月 周      命令
+
+        M: 分钟（0-59）。每分钟用*或者 */1表示
+
+        H：小时（0-23）。（0表示0点）
+
+        D：天（1-31）。
+
+        m: 月（1-12）。
+
+        d: 一星期内的天（0~6，0为星期天）。
+
+    1)，在配置文件之中配置定时任务(指定执行函数以及静态页面位置！)，并在配置文件之中指定中文编码
+    2),开启定时任务！
+        1)),添加定时任务到系统中
+            python manage.py crontab add
+        2)),显示已经激活的定时任务
+            python manage.py crontab show
+        3)),移除定时任务！
+            python manage.py crontab remove
+
+ 13,使用redis缓存存储(三级联动),第一次查询在mysql之中查询，第二次查询在会在redis之中查询
+    1)如果想把缓存数据保存在redis中，且设置有效期，可以通过在配置文件中定义的方式来实现。
+        # DRF扩展
+        REST_FRAMEWORK_EXTENSIONS = {
+            # 缓存时间
+            'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 60,
+            # 缓存存储
+            'DEFAULT_USE_CACHE': 'default',
+        }
+    2),使用装饰器装饰需要使用缓存的函数！
+        详细使用参考　area/views.py
+
+ 14,FastDFS 的使用(是用来存储图片的地方！)
+    详细参考我的博客　docker篇
+
+ 15,详情页静态化处理！(每个商品),使用的是异步任务处理的方法！
+    1),celery_tasks中新建html/tasks.py任务
+    2),将形成商品类别部分的数据封装成一个公共函数，放在goods/utils.py中
+    3),编辑前端模板
+    4),编辑goods/admin.py 编辑异步任务的触发操作！
+    5),整个过程的实现是后台管理员在添加页面或者更改页面数据的时候都会触发异步任务(模型管理器之中)，
+        异步任务会自动的生成静态文件!
+
