@@ -271,7 +271,7 @@ CRONJOBS = [
     # 每5分钟执行一次生成主页静态文件 (时间，函数，以及日志文件路径！)
     (
         '*/5 * * * *', 'contents.crons.generate_static_index_html',
-        '>> /home/sxu/PycharmProjects/shiqi/django_project/lulu_store/log/crontab.log')
+        '>> /home/sxu/PycharmProjects/shiqi/django_project/lulu_store/logs/crontab.logs')
 ]
 # 解决crontab中文问题
 CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
@@ -292,50 +292,50 @@ HAYSTACK_CONNECTIONS = {
 # 当添加、修改、删除数据时，自动生成索引,也就是分词更改之后自动生成新的搜索索引！
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
-#日志文件的使用！
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        #verbose，输出日志级别名称，日志消息，以及生成日志消息的时间，进程，线程和模块。
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s'
-        },
-        #simple，只输出日志级别名称（例如 DEBUG）和日志消息。
-        #日志的级别！该format字符串是一个普通的Python格式化字符串，用于描述要在每个日志记录行上输出的详细信息。
-        'simple': {
-            'format': '%(levelname)s %(module)s %(lineno)d %(message)s'
-        },
-    },
-    'filters': {
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
-    },
-    'handlers': {
-        #django，将所有消息传递给console处理程序。
-        'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(os.path.dirname(BASE_DIR), "logs/meiduo.log"),  # 日志文件的位置
-            'maxBytes': 300 * 1024 * 1024,
-            'backupCount': 10,
-            'formatter': 'verbose'
-        },
-    },
-    'loggers': {
-        'django': {  # 定义了一个名为django的日志器
-            'handlers': ['console', 'file'],
-            'propagate': True,
-        },
-    }
-}
+# #日志文件的使用！
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         #verbose，输出日志级别名称，日志消息，以及生成日志消息的时间，进程，线程和模块。
+#         'verbose': {
+#             'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s'
+#         },
+#         #simple，只输出日志级别名称（例如 DEBUG）和日志消息。
+#         #日志的级别！该format字符串是一个普通的Python格式化字符串，用于描述要在每个日志记录行上输出的详细信息。
+#         'simple': {
+#             'format': '%(levelname)s %(module)s %(lineno)d %(message)s'
+#         },
+#     },
+#     'filters': {
+#         'require_debug_true': {
+#             '()': 'django.utils.logs.RequireDebugTrue',
+#         },
+#     },
+#     'handlers': {
+#         #django，将所有消息传递给console处理程序。
+#         'console': {
+#             'level': 'DEBUG',
+#             'filters': ['require_debug_true'],
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'simple'
+#         },
+#         'file': {
+#             'level': 'INFO',
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'filename': os.path.join(os.path.dirname(BASE_DIR), "logs/meiduo.logs"),  # 日志文件的位置
+#             'maxBytes': 300 * 1024 * 1024,
+#             'backupCount': 10,
+#             'formatter': 'verbose'
+#         },
+#     },
+#     'loggers': {
+#         'django': {  # 定义了一个名为django的日志器
+#             'handlers': ['console', 'file'],
+#             'propagate': True,
+#         },
+#     }
+# }
 
 '''
     此日志记录配置执行以下操作：
@@ -344,7 +344,7 @@ LOGGING = {
 
 定义两个过滤器：
 project.logging.SpecialFilter，使用别名special。如果此过滤器需要其他参数，则可以将它们作为过滤器配置字典中的附加键提供。在这种情况下，参数 foo将被赋予bar实例化时 的值SpecialFilter。
-django.utils.log.RequireDebugTrue，其传递记录时 DEBUG是True。
+django.utils.logs.RequireDebugTrue，其传递记录时 DEBUG是True。
 定义两个处理程序：
 console，a StreamHandler，打印任何INFO （或更高）消息sys.stderr。此处理程序使用simple 输出格式。
 mail_admins，an AdminEmailHandler，将任何ERROR （或更高）消息通过电子邮件发送到网站ADMINS。此处理程序使用 special过滤器。
