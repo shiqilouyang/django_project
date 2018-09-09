@@ -31,6 +31,7 @@ class ImagecodeView(APIView):
 
     '''
 
+
     # request 是封装后的对象！
     def get(self, request, image_code_id):
         # print(type(request)) <class 'rest_framework.request.Request'>
