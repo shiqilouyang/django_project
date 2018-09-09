@@ -141,7 +141,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/scripts/'
-# 模型类之中提供了认证系统！
+# 模型类之中提供了认证系统！ 此处使用了 drf 自带的模型类！
 AUTH_USER_MODEL = 'users.User'
 
 '''使用redis存储！'''
