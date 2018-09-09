@@ -146,6 +146,7 @@ class VerifyEmailView(APIView):
 '''
 
 
+
 class AddressViewSet(CreateAPIView, ListAPIView, DestroyAPIView, UpdateAPIView):
     serializer_class = UserAddressSerializer
     '''新增收货地址在 CreateAPIView 含有！'''
