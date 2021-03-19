@@ -22,7 +22,7 @@ fdfs-client-py==1.2.6
 idna==2.7
 itsdangerous==0.24
 itypes==1.1.0
-Jinja2==2.10
+Jinja2==2.11.3
 kombu==4.2.1
 MarkupSafe==1.0
 mutagen==1.40.0
